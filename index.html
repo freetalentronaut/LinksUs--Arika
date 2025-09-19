@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- =======================================================================
+       ARIKA HANDMADE JEWELLERY — Single Page Site (Dark Blue Royal Theme)
+       Author: ChatGPT for Ashi Chattha (Arika, Hapur) | Cute + Elegant UI
+       Tech: Tailwind CDN + small vanilla JS (no external build needed)
+       ======================================================================= -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arika Jewellery — Premium Handmade Jewellery</title>
+  <meta name="description" content="Premium handmade jewellery with detailed craftsmanship and unique, attractive designs. Shop necklaces, earrings, bracelets, and more by Arika Jewellery." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            royal: '#0B1432',         // deep royal blue
+            royal2: '#0F1C45',        // slightly brighter
+            midnight: '#070D21',
+            gold: '#F3C969',          // warm muted gold
+            goldSoft: '#FFEAB3',
+            ink: '#091020',
+          },
+          boxShadow: {
+            glow: '0 25px 70px rgba(10,20,50,.35)',
+            gold: '0 18px 48px rgba(243,201,105,.25)',
+            soft: '0 12px 36px rgba(0,0,0,.22)'
+          },
+          fontFamily: {
+            display: ['Playfair Display', 'serif'],
+            sans: ['Inter', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          keyframes: {
+            float: { '0%':{transform:'translateY(0)'}, '50%':{transform:'translateY(-12px)'}, '100%':{transform:'translateY(0)'} },
+            fadeUp: { '0%':{opacity:0, transform:'translateY(18px)'}, '100%':{opacity:1, transform:'translateY(0)'} },
+            marquee: { '0%': {transform:'translateX(0)'}, '100%': {transform:'translateX(-50%)'} },
+            pulseRing: { '0%': {boxShadow:'0 0 0 0 rgba(243,201,105,.5)'}, '70%': {boxShadow:'0 0 0 18px rgba(243,201,105,0)'}, '100%': {boxShadow:'0 0 0 0 rgba(243,201,105,0)'} }
+          },
+          animation: {
+            float: 'float 7s ease-in-out infinite',
+            fadeUp: 'fadeUp .9s ease forwards',
+            marquee: 'marquee 22s linear infinite',
+            pulseRing: 'pulseRing 2.8s ease-out infinite'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --royal: #0B1432;
+      --royal2:#0F1C45;
+      --midnight:#070D21;
+      --gold:  #F3C969;
+      --goldSoft:#FFEAB3;
+      --ink:   #091020;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: radial-gradient(1200px 800px at 10% 10%, rgba(243,201,105,.08), transparent 60%),
+                     radial-gradient(1200px 800px at 90% 0%, rgba(100,150,255,.06), transparent 60%),
+                     linear-gradient(180deg, #070D21, #0B1432); }
+
+    /* Scroll reveal utility */
+    .sa    { opacity: 0; transform: translateY(18px); transition: all .9s cubic-bezier(.2,.9,.2,1); }
+    .sa.in { opacity: 1; transform: none; }
+    .sa.slide-l { transform: translateX(-26px); }
+    .sa.slide-r { transform: translateX(26px); }
+
+    /* Cute underline on hover */
+    .link-underline {
+      position: relative;
+      display: inline-block;
+    }
+    .link-underline::after {
+      content:'';
+      position:absolute; left:0; bottom:-2px;
+      width:0; height:2px; background: linear-gradient(90deg, var(--gold), #fff0);
+      transition: width .3s ease;
+    }
+    .link-underline:hover::after { width:100%; }
+
+    /* Nav blur + progress */
+    .nav-veil { backdrop-filter: blur(10px); background: rgba(10,14,40,.55); border-bottom: 1px solid rgba(255,255,255,.06); }
+    #scrollbar { position:fixed; inset:0 auto auto 0; height:3px; width:0%; background: linear-gradient(90deg,var(--gold), #ffeab3); z-index:80 }
+
+    /* Sparkle canvas overlay */
+    .sparkle-wrap { position: fixed; inset: 0; pointer-events:none; z-index:-1; opacity:.55; }
+
+    /* Card glass look */
+    .glass {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Lightbox */
+    .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: none; align-items:center; justify-content:center; z-index: 60; }
+    .lightbox.open { display:flex; }
+    .lightbox img{ max-width: 94vw; max-height: 88vh; border-radius: 16px; box-shadow: 0 25px 60px rgba(0,0,0,.5) }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sa { transition: none !important; }
+      .sparkle-wrap { display:none !important; }
+    }
+  </style>
+</head>
+<body class="text-white font-sans antialiased selection:bg-gold selection:text-royal2">
+
+  <!-- Scroll progress -->
+  <div id="scrollbar"></div>
+
+  <!-- Sparkle Canvas -->
+  <div class="sparkle-wrap">
+    <canvas id="sparkles"></canvas>
+  </div>
+
+  <!-- ====================== NAVBAR ====================== -->
+  <header id="nav" class="nav-veil sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo (SVG) -->
+      <a href="#home" class="flex items-center gap-3 group">
+        <svg class="w-9 h-9" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#F3C969"/>
+              <stop offset="1" stop-color="#FFEAB3"/>
+            </linearGradient>
+          </defs>
+          <circle cx="32" cy="32" r="28" stroke="url(#lg)" stroke-width="2.5" fill="transparent"></circle>
+          <path d="M18 38c8-12 20-12 28 0" stroke="url(#lg)" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M22 26l10 12 10-12" stroke="url(#lg)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="font-extrabold tracking-wide text-lg">Arika Jewellery</span>
+      </a>
+
+      <!-- Desktop nav -->
+      <nav class="hidden md:flex items-center gap-7 text-[15px]">
+        <a href="#home" class="link-underline">Home</a>
+        <a href="#about" class="link-underline">About</a>
+        <a href="#collection" class="link-underline">Collection</a>
+        <a href="#gallery" class="link-underline">Gallery</a>
+        <a href="#testimonials" class="link-underline">Reviews</a>
+        <a href="#faq" class="link-underline">FAQ</a>
+        <a href="#contact" class="ml-1 inline-flex items-center rounded-full bg-gold text-royal font-semibold px-4 py-2 hover:shadow-gold transition">Shop Now</a>
+      </nav>
+
+      <!-- Mobile menu button -->
+      <button id="menuBtn" class="md:hidden rounded-lg border border-white/20 px-3 py-2">Menu</button>
+    </div>
+
+    <!-- Mobile nav -->
+    <div id="mobileNav" class="hidden md:hidden border-t border-white/10 bg-midnight">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 grid gap-2">
+        <a href="#home" class="py-2">Home</a>
+        <a href="#about" class="py-2">About</a>
+        <a href="#collection" class="py-2">Collection</a>
+        <a href="#gallery" class="py-2">Gallery</a>
+        <a href="#testimonials" class="py-2">Reviews</a>
+        <a href="#faq" class="py-2">FAQ</a>
+        <a href="#contact" class="py-2">Contact</a>
+        <a href="#contact" class="rounded-lg bg-gold text-royal font-semibold text-center px-4 py-3 mt-2">Shop Now</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====================== HERO ====================== -->
+  <section id="home" class="relative overflow-hidden">
+    <!-- floating orbs -->
+    <div class="pointer-events-none absolute -top-24 -left-20 w-72 h-72 rounded-full bg-gold/20 blur-3xl animate-float"></div>
+    <div class="pointer-events-none absolute -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-300/10 blur-3xl animate-float" style="animation-duration:9s"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <div class="grid lg:grid-cols-2 gap-10 items-center">
+        <div class="sa">
+          <p class="uppercase tracking-[.25em] text-gold/90 text-xs font-semibold">Premium • Handmade • Elegant</p>
+          <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl leading-tight mt-2">
+            Discover <span class="text-gold">Handmade Jewellery</span> crafted with love.
+          </h1>
+          <p class="mt-4 text-white/80 max-w-xl">
+            Unique & attractive designs from Arika, Hapur. Detailed craftsmanship, royal finishes, and a luxe feel for every occasion.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a href="#collection" class="rounded-full bg-gold text-royal font-semibold px-6 py-3 hover:shadow-gold transition">Explore Collection</a>
+            <a href="#about" class="rounded-full border border-white/20 px-6 py-3 hover:bg-white/10">About Arika</a>
+          </div>
+
+          <!-- Highlights -->
+          <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl sa">
+            <div class="glass rounded-xl p-4 text-center">
+              <div class="text-lg font-extrabold text-gold">Handmade</div>
+              <div class="text-xs text-white/70">Craftsmanship</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <div class="text-lg font-extrabold text-gold">Premium</div>
+              <div class="text-xs text-white/70">Materials</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <div class="text-lg font-extrabold text-gold">Unique</div>
+              <div class="text-xs text-white/70">Designs</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <div class="text-lg font-extrabold text-gold">Ethical</div>
+              <div class="text-xs text-white/70">Sourcing</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero image -->
+        <div class="relative sa slide-r">
+          <div class="relative rounded-3xl overflow-hidden shadow-glow border border-white/10">
+            <img class="w-full h-full object-cover" src="jewellery.jpg" alt="Handmade jewellery necklace">
+          </div>
+          <div class="absolute -bottom-8 left-6 hidden sm:block sa">
+            <div class="rounded-2xl overflow-hidden border border-white/10 shadow-soft w-40">
+              <img class="w-full h-full object-cover" src="earrings.jpg" alt="Gold earrings">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats counters -->
+      <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 sa">
+        <div class="glass rounded-2xl p-6 text-center">
+          <div class="text-3xl font-extrabold text-gold counter" data-target="15">0</div>
+          <div class="text-sm text-white/70 mt-1">Years Crafting</div>
+        </div>
+        <div class="glass rounded-2xl p-6 text-center">
+          <div class="text-3xl font-extrabold text-gold counter" data-target="2500">0</div>
+          <div class="text-sm text-white/70 mt-1">Happy Clients</div>
+        </div>
+        <div class="glass rounded-2xl p-6 text-center">
+          <div class="text-3xl font-extrabold text-gold counter" data-target="320">0</div>
+          <div class="text-sm text-white/70 mt-1">Unique Designs</div>
+        </div>
+        <div class="glass rounded-2xl p-6 text-center">
+          <div class="text-3xl font-extrabold text-gold counter" data-target="48">0</div>
+          <div class="text-sm text-white/70 mt-1">Cities Served</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Soft divider -->
+    <div class="h-px w-11/12 mx-auto bg-gradient-to-r from-transparent via-gold/60 to-transparent opacity-70"></div>
+  </section>
+
+  <!-- ====================== ABOUT ====================== -->
+  <section id="about" class="relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(600px 300px at 15% 20%, rgba(243,201,105,.6), transparent 60%),
+                                                     radial-gradient(600px 300px at 85% 20%, rgba(61,125,255,.6), transparent 60%);"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="sa slide-l">
+          <h2 class="font-display text-3xl md:text-4xl">About <span class="text-gold">Arika</span></h2>
+          <p class="mt-4 text-white/80">
+            Arika is a premium handmade jewellery brand from Hapur, India. Each piece is designed with passion and care, showcasing detailed craftsmanship
+            and unique designs to give you a luxurious look for every occasion.
+          </p>
+          <p class="mt-3 text-white/70">
+            We focus on ethical sourcing, quality finishes, and profiles that balance modern chic with timeless elegance.
+          </p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href="#collection" class="rounded-full bg-gold text-royal font-semibold px-6 py-3 hover:shadow-gold transition">View Collection</a>
+            <a href="#gallery" class="rounded-full border border-white/20 px-6 py-3 hover:bg-white/10">See Gallery</a>
+          </div>
+        </div>
+        <div class="sa slide-r">
+          <div class="rounded-3xl overflow-hidden border border-white/10 shadow-glow">
+            <img class="w-full h-full object-cover" src="bracelet.png" alt="Bracelet close up">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== MARQUEE (BRANDS/VIBES) ====================== -->
+  <section class="py-10 border-t border-white/5 border-b">
+    <div class="overflow-hidden">
+      <div class="whitespace-nowrap animate-marquee">
+        <span class="mx-8 text-white/60">Handcrafted</span>
+        <span class="mx-8 text-white/60">Premium Quality</span>
+        <span class="mx-8 text-white/60">Ethically Sourced</span>
+        <span class="mx-8 text-white/60">Unique Designs</span>
+        <span class="mx-8 text-white/60">Royal Finishes</span>
+        <span class="mx-8 text-white/60">Gift Ready</span>
+        <span class="mx-8 text-white/60">Made in India</span>
+        <span class="mx-8 text-white/60">Handcrafted</span>
+        <span class="mx-8 text-white/60">Premium Quality</span>
+        <span class="mx-8 text-white/60">Ethically Sourced</span>
+        <span class="mx-8 text-white/60">Unique Designs</span>
+        <span class="mx-8 text-white/60">Royal Finishes</span>
+        <span class="mx-8 text-white/60">Gift Ready</span>
+        <span class="mx-8 text-white/60">Made in India</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== COLLECTION ====================== -->
+  <section id="collection" class="relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <header class="sa text-center">
+        <h2 class="font-display text-3xl md:text-4xl">Our <span class="text-gold">Collection</span></h2>
+        <p class="text-white/70 mt-2">Curated designs — elegant, playful, and everything in between.</p>
+      </header>
+
+      <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sa">
+        <!-- Card 1 -->
+        <article class="glass rounded-2xl overflow-hidden hover:translate-y-[-6px] transition shadow-soft">
+          <img class="w-full h-52 object-cover" src="necklace.webp" alt="Necklace">
+          <div class="p-5">
+            <h3 class="font-semibold text-lg">Elegant Necklace</h3>
+            <p class="text-sm text-white/70 mt-1">Handcrafted centerpiece with delicate gold tones.</p>
+            <div class="mt-3 flex items-center justify-between">
+              <span class="text-gold font-semibold">₹ 2,499</span>
+              <button class="rounded-full bg-gold text-royal font-semibold px-4 py-2">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="glass rounded-2xl overflow-hidden hover:translate-y-[-6px] transition shadow-soft">
+          <img class="w-full h-52 object-cover" src="earrings.jpg" alt="Earrings">
+          <div class="p-5">
+            <h3 class="font-semibold text-lg">Golden Earrings</h3>
+            <p class="text-sm text-white/70 mt-1">Statement pieces that glow with every step.</p>
+            <div class="mt-3 flex items-center justify-between">
+              <span class="text-gold font-semibold">₹ 1,299</span>
+              <button class="rounded-full bg-gold text-royal font-semibold px-4 py-2">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="glass rounded-2xl overflow-hidden hover:translate-y-[-6px] transition shadow-soft">
+          <img class="w-full h-52 object-cover" src="bracelet.png" alt="Bracelet">
+          <div class="p-5">
+            <h3 class="font-semibold text-lg">Luxury Bracelet</h3>
+            <p class="text-sm text-white/70 mt-1">A luxe wrap to complete your look.</p>
+            <div class="mt-3 flex items-center justify-between">
+              <span class="text-gold font-semibold">₹ 1,799</span>
+              <button class="rounded-full bg-gold text-royal font-semibold px-4 py-2">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="glass rounded-2xl overflow-hidden hover:translate-y-[-6px] transition shadow-soft">
+          <img class="w-full h-52 object-cover" src="https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=1600&auto=format&fit=crop" alt="Rings">
+          <div class="p-5">
+            <h3 class="font-semibold text-lg">Stackable Rings</h3>
+            <p class="text-sm text-white/70 mt-1">Mix, match, and sparkle.</p>
+            <div class="mt-3 flex items-center justify-between">
+              <span class="text-gold font-semibold">₹ 999</span>
+              <button class="rounded-full bg-gold text-royal font-semibold px-4 py-2">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="glass rounded-2xl overflow-hidden hover:translate-y-[-6px] transition shadow-soft">
+          <img class="w-full h-52 object-cover" src="choker.jpg" alt="Choker">
+          <div class="p-5">
+            <h3 class="font-semibold text-lg">Royal Choker</h3>
+            <p class="text-sm text-white/70 mt-1">Vintage vibe with modern finish.</p>
+            <div class="mt-3 flex items-center justify-between">
+              <span class="text-gold font-semibold">₹ 2,199</span>
+              <button class="rounded-full bg-gold text-royal font-semibold px-4 py-2">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="glass rounded-2xl overflow-hidden hover:translate-y-[-6px] transition shadow-soft">
+          <img class="w-full h-52 object-cover" src="anklet.webp" alt="Anklet">
+          <div class="p-5">
+            <h3 class="font-semibold text-lg">Pearl Anklet</h3>
+            <p class="text-sm text-white/70 mt-1">Minimal, dainty, dreamy.</p>
+            <div class="mt-3 flex items-center justify-between">
+              <span class="text-gold font-semibold">₹ 899</span>
+              <button class="rounded-full bg-gold text-royal font-semibold px-4 py-2">Add to Cart</button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- CTA -->
+      <div class="text-center mt-10 sa">
+        <a href="#contact" class="inline-flex items-center rounded-full bg-gold text-royal font-semibold px-6 py-3 hover:shadow-gold">
+          Request Custom Piece
+        </a>
+      </div>
+    </div>
+
+    <div class="h-px w-11/12 mx-auto bg-gradient-to-r from-transparent via-gold/60 to-transparent opacity-70"></div>
+  </section>
+
+  <!-- ====================== GALLERY (LIGHTBOX) ====================== -->
+  <section id="gallery" class="relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <header class="sa text-center">
+        <h2 class="font-display text-3xl md:text-4xl">Gallery</h2>
+        <p class="text-white/70 mt-2">A few favorite moments & details.</p>
+      </header>
+      <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 sa">
+        <img class="rounded-xl object-cover w-full h-40 md:h-44 lightboxable cursor-pointer" src="necklace.webp" alt="">
+        <img class="rounded-xl object-cover w-full h-40 md:h-44 lightboxable cursor-pointer" src="bracelet.png" alt="">
+        <img class="rounded-xl object-cover w-full h-40 md:h-44 lightboxable cursor-pointer" src="earrings.jpg" alt="">
+        <img class="rounded-xl object-cover w-full h-40 md:h-44 lightboxable cursor-pointer" src="jewellery.jpg" alt="">
+      </div>
+    </div>
+
+    <div class="lightbox" id="lightbox">
+      <button id="lightboxClose" class="absolute top-5 right-5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg">Close ✕</button>
+      <img id="lightboxImg" src="" alt="">
+    </div>
+  </section>
+
+  <!-- ====================== TESTIMONIALS (SLIDER) ====================== -->
+  <section id="testimonials" class="relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <header class="sa text-center">
+        <h2 class="font-display text-3xl md:text-4xl">What People Say</h2>
+        <p class="text-white/70 mt-2">Short experiences that build credibility.</p>
+      </header>
+
+      <!-- Slider -->
+      <div class="relative mt-10 sa">
+        <div class="overflow-hidden rounded-3xl border border-white/10">
+          <div id="sliderTrack" class="flex transition-transform duration-500">
+            <!-- Slide 1 -->
+            <blockquote class="min-w-full p-8 md:p-12 bg-white/5">
+              <p class="italic text-lg md:text-xl">“Absolutely stunning! The necklace I bought was even more beautiful in real life.”</p>
+              <footer class="mt-3 text-sm text-white/70">— Priya</footer>
+            </blockquote>
+            <!-- Slide 2 -->
+            <blockquote class="min-w-full p-8 md:p-12 bg-white/5">
+              <p class="italic text-lg md:text-xl">“Elegant designs and great quality. Arika Jewellery has become my favorite brand.”</p>
+              <footer class="mt-3 text-sm text-white/70">— Aditi</footer>
+            </blockquote>
+            <!-- Slide 3 -->
+            <blockquote class="min-w-full p-8 md:p-12 bg-white/5">
+              <p class="italic text-lg md:text-xl">“Loved the earrings! They go perfectly with my outfits.”</p>
+              <footer class="mt-3 text-sm text-white/70">— Mehak</footer>
+            </blockquote>
+          </div>
+        </div>
+
+        <!-- Slider controls -->
+        <div class="flex items-center justify-center gap-3 mt-6">
+          <button class="slider-dot w-3 h-3 rounded-full bg-white/30" data-slide="0"></button>
+          <button class="slider-dot w-3 h-3 rounded-full bg-white/30" data-slide="1"></button>
+          <button class="slider-dot w-3 h-3 rounded-full bg-white/30" data-slide="2"></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== FAQ ====================== -->
+  <section id="faq" class="relative overflow-hidden">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <header class="sa text-center">
+        <h2 class="font-display text-3xl md:text-4xl">Frequently Asked Questions</h2>
+        <p class="text-white/70 mt-2">We’re here to help.</p>
+      </header>
+
+      <div class="mt-8 space-y-3 sa">
+        <!-- Item -->
+        <details class="group glass rounded-xl p-5">
+          <summary class="cursor-pointer list-none flex items-center justify-between">
+            <span class="font-semibold">Do you offer custom designs?</span>
+            <span class="ml-3 text-gold group-open:rotate-45 transition">+</span>
+          </summary>
+          <p class="mt-3 text-white/80">Yes! Share your idea and we’ll craft a bespoke piece just for you.</p>
+        </details>
+        <!-- Item -->
+        <details class="group glass rounded-xl p-5">
+          <summary class="cursor-pointer list-none flex items-center justify-between">
+            <span class="font-semibold">What is your delivery time?</span>
+            <span class="ml-3 text-gold group-open:rotate-45 transition">+</span>
+          </summary>
+          <p class="mt-3 text-white/80">Typically 5–7 working days for ready pieces, 10–14 for custom orders.</p>
+        </details>
+        <!-- Item -->
+        <details class="group glass rounded-xl p-5">
+          <summary class="cursor-pointer list-none flex items-center justify-between">
+            <span class="font-semibold">Is the jewellery hypoallergenic?</span>
+            <span class="ml-3 text-gold group-open:rotate-45 transition">+</span>
+          </summary>
+          <p class="mt-3 text-white/80">We use skin-friendly materials and coatings for comfortable wear.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== NEWSLETTER / CONTACT ====================== -->
+  <section id="contact" class="relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 grid grid-cols-2">
+      <div class="bg-gradient-to-br from-gold/30 to-transparent"></div>
+      <div class="bg-gradient-to-tl from-blue-300/20 to-transparent"></div>
+    </div>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 relative">
+      <div class="grid lg:grid-cols-2 gap-10 items-stretch">
+        <!-- Contact card -->
+        <div class="glass rounded-3xl p-6 md:p-8">
+          <h3 class="font-display text-2xl">Get in Touch</h3>
+          <p class="text-white/70 mt-2">Have a custom request or wholesale inquiry? We’d love to chat.</p>
+
+          <form class="grid gap-4 mt-6">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <input class="w-full rounded-lg bg-white/5 border border-white/15 px-4 py-3" placeholder="Your Name" required />
+              <input class="w-full rounded-lg bg-white/5 border border-white/15 px-4 py-3" placeholder="Phone / WhatsApp" />
+            </div>
+            <input type="email" class="w-full rounded-lg bg-white/5 border border-white/15 px-4 py-3" placeholder="Email" required />
+            <textarea rows="4" class="w-full rounded-lg bg-white/5 border border-white/15 px-4 py-3" placeholder="Message"></textarea>
+            <button class="rounded-lg bg-gold text-royal font-semibold px-6 py-3 hover:shadow-gold">Send Message</button>
+          </form>
+
+          <div class="mt-6 text-sm text-white/70">
+            Email: <a class="link-underline" href="mailto:ashichattha15@gmail.com">ashichattha15@gmail.com</a> &nbsp;|&nbsp;
+            Phone: <a class="link-underline" href="tel:+917983370384">+91 79833 70384</a>
+          </div>
+        </div>
+
+        <!-- Newsletter / CTA -->
+        <div class="rounded-3xl p-6 md:p-8 bg-gradient-to-br from-royal2 to-midnight border border-white/10 shadow-glow">
+          <h3 class="font-display text-2xl">Join the Royal Club</h3>
+          <p class="text-white/70 mt-2">Be the first to know about launches, offers, and behind-the-scenes.</p>
+          <form class="mt-6 flex flex-col sm:flex-row gap-3">
+            <input type="email" class="flex-1 rounded-lg bg-white/5 border border-white/15 px-4 py-3" placeholder="Enter your email" />
+            <button class="rounded-lg bg-gold text-royal font-semibold px-6 py-3 hover:shadow-gold">Subscribe</button>
+          </form>
+
+          <!-- WhatsApp Quick -->
+          <div class="mt-8 rounded-2xl border border-white/10 p-4 grid sm:grid-cols-2 gap-4">
+            <a href="https://wa.me/917983370384" target="_blank" class="rounded-xl bg-gold text-royal text-center font-semibold px-4 py-3 hover:shadow-gold">Chat on WhatsApp</a>
+            <a href="#collection" class="rounded-xl border border-white/20 text-center px-4 py-3 hover:bg-white/10">Browse Bestsellers</a>
+          </div>
+
+          <!-- Map (placeholder city) -->
+          <div class="mt-6 rounded-xl overflow-hidden">
+            <iframe class="w-full h-56" loading="lazy" src="https://maps.google.com/maps?q=Hapur&t=&z=10&ie=UTF8&iwloc=&output=embed"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== FOOTER ====================== -->
+  <footer class="border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-sm text-white/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>© <span id="y"></span> Arika Jewellery. All rights reserved.</div>
+      <div class="flex items-center gap-5">
+        <a href="https://www.talentronaut.in/" target="_blank" class="link-underline">Designed by Talentronaut Technologies</a>
+        <a href="#home" class="link-underline">Back to top ↑</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ====================== FLOATING ACTIONS ====================== -->
+  <!-- Big floating Talentronaut icon -->
+  <a href="https://www.talentronaut.in/" target="_blank" class="fixed bottom-6 right-6 z-50 group">
+    <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white shadow-2xl flex items-center justify-center hover:scale-105 transition">
+      <!-- subtle pulse ring -->
+      <span class="absolute inset-0 rounded-full animate-pulseRing"></span>
+      <img src="logo.jpg" alt="Talentronaut" class="w-12 h-12 sm:w-14 sm:h-14" />
+    </div>
+  </a>
+
+  <!-- Floating WhatsApp -->
+  <a href="https://wa.me/917983370384" target="_blank" class="fixed bottom-6 left-6 z-40 group">
+    <div class="rounded-full bg-green-500 text-white px-5 py-3 shadow-2xl flex items-center gap-2 hover:scale-105 transition">
+      <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.62-6.003C.122 5.281 5.403 0 12.061 0c3.181 0 6.167 1.24 8.413 3.488a11.82 11.82 0 013.497 8.414c-.003 6.659-5.284 11.94-11.942 11.94a11.9 11.9 0 01-6-1.617L.057 24zm6.597-3.807c1.735 1.033 3.276 1.666 5.392 1.666 5.448 0 9.886-4.434 9.889-9.877.003-5.462-4.415-9.89-9.881-9.894-5.448 0-9.884 4.434-9.887 9.882a9.86 9.86 0 001.662 5.414l-.999 3.648 3.824-1.839zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.03-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.199-.347.224-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.298-.018-.46.13-.609.134-.133.297-.347.446-.521.149-.173.198-.297.298-.496.099-.198.05-.372-.025-.521-.074-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.872.118.571-.085 1.758-.718 2.006-1.412.248-.694.248-1.29.173-1.414z"/></svg>
+      <span class="font-semibold">Chat</span>
+    </div>
+  </a>
+
+  <!-- ====================== SCRIPTS ====================== -->
+  <script>
+    // Year
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Mobile menu toggle
+    const mb = document.getElementById('menuBtn');
+    const mn = document.getElementById('mobileNav');
+    mb.addEventListener('click', () => mn.classList.toggle('hidden'));
+
+    // Scroll progress + add subtle shadow to nav on scroll
+    const bar = document.getElementById('scrollbar');
+    const header = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      const h=document.documentElement, sc=h.scrollTop, max=h.scrollHeight-h.clientHeight;
+      bar.style.width = (sc/max) * 100 + '%';
+      header.classList.toggle('shadow-lg', sc > 8);
+    }, {passive:true});
+
+    // Intersection reveal
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          obs.unobserve(e.target);
+        }
+      });
+    }, {threshold:.16, rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.sa').forEach(el => io.observe(el));
+
+    // Sparkle background (simple wave dots)
+    const canvas = document.getElementById('sparkles');
+    if (canvas && canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      let w, h, pr = window.devicePixelRatio || 1, items = [];
+      function resize(){
+        w = canvas.width = innerWidth * pr;
+        h = canvas.height = innerHeight * pr;
+        canvas.style.width = innerWidth + 'px';
+        canvas.style.height = innerHeight + 'px';
+        ctx.scale(pr, pr);
+        build();
+      }
+      function build(){
+        items = [];
+        const count = Math.min(60, Math.floor(innerWidth/20));
+        for (let i=0;i<count;i++){
+          items.push({
+            x: Math.random()*innerWidth,
+            y: Math.random()*innerHeight,
+            r: Math.random()*2 + 0.6,
+            a: Math.random()*Math.PI*2,
+            s: Math.random()*0.7 + 0.2,
+            c: Math.random()>.5 ? 'rgba(243,201,105,.5)' : 'rgba(255,234,179,.35)'
+          });
+        }
+      }
+      function draw(){
+        ctx.clearRect(0,0,innerWidth,innerHeight);
+        items.forEach(p=>{
+          p.a += 0.007;
+          p.x += Math.cos(p.a)*p.s;
+          p.y += Math.sin(p.a)*p.s*0.5;
+          if (p.x<-10||p.x>innerWidth+10||p.y<-10||p.y>innerHeight+10){ p.x=Math.random()*innerWidth; p.y=Math.random()*innerHeight; }
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r*2, 0, Math.PI*2);
+          ctx.fillStyle = p.c;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      resize(); draw();
+      addEventListener('resize', resize, {passive:true});
+    }
+
+    // Counters
+    const counters = document.querySelectorAll('.counter');
+    const counterIO = new IntersectionObserver((entries, obs)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          const el = entry.target;
+          const target = +el.dataset.target;
+          let cur = 0;
+          const step = Math.max(1, Math.floor(target/90));
+          const tick = () => {
+            cur += step;
+            if (cur >= target) { cur = target; }
+            el.textContent = cur.toLocaleString();
+            if (cur < target) requestAnimationFrame(tick);
+          }
+          tick();
+          obs.unobserve(el);
+        }
+      });
+    }, {threshold:.5});
+    counters.forEach(c=> counterIO.observe(c));
+
+    // Testimonials slider
+    const track = document.getElementById('sliderTrack');
+    const dots = document.querySelectorAll('.slider-dot');
+    let current = 0, slides = 3;
+    function goTo(i){
+      current = i;
+      track.style.transform = `translateX(-${i*100}%)`;
+      dots.forEach((d,idx)=> d.style.background = idx===i ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.3)');
+    }
+    dots.forEach(d => d.addEventListener('click', ()=> goTo(+d.dataset.slide)));
+    setInterval(()=> goTo((current+1)%slides), 5000);
+    goTo(0);
+
+    // Lightbox gallery
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightboxImg');
+    const lbClose = document.getElementById('lightboxClose');
+    document.querySelectorAll('.lightboxable').forEach(img=>{
+      img.addEventListener('click', ()=>{
+        lbImg.src = img.src;
+        lb.classList.add('open');
+      });
+    });
+    lbClose.addEventListener('click', ()=> lb.classList.remove('open'));
+    lb.addEventListener('click', (e)=> { if (e.target === lb) lb.classList.remove('open'); });
+
+    // Smooth anchor scroll (improves mobile)
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        const id = a.getAttribute('href');
+        if (!id || id==='#') return;
+        const tgt = document.querySelector(id);
+        if (tgt) {
+          e.preventDefault();
+          tgt.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+      });
+    });
+  </script>
+</body>
+</html>
